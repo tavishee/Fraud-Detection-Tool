@@ -20,8 +20,6 @@ import xgboost as xgb
 from imblearn.over_sampling import SMOTE
 import joblib
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
-
 # ===============================
 # Sidebar
 # ===============================
