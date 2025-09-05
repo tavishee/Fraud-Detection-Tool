@@ -55,25 +55,29 @@ elif menu == "EDA":
         # Class distribution
         st.subheader("Class Distribution")
         st.write(df['Class'].value_counts())
-        sns.countplot(x='Class', data=df)
-        st.pyplot()
+        fig1, ax1 = plt.subplots()
+        sns.countplot(x='Class', data=df, ax=ax1)
+        st.pyplot(fig1)
 
         # Amount distribution
         st.subheader("Transaction Amount Distribution")
-        sns.histplot(df['Amount'], bins=100, log_scale=(False, True))
-        st.pyplot()
+        fig2, ax2 = plt.subplots()
+        sns.histplot(df['Amount'], bins=100, log_scale=(False, True), ax=ax2)
+        st.pyplot(fig2)
 
         # Log transform Amount
         df['amount_log'] = np.log1p(df['Amount'])
         st.subheader("Log-transformed Amount Distribution")
-        sns.histplot(df['amount_log'], bins=100)
-        st.pyplot()
+        fig3, ax3 = plt.subplots()
+        sns.histplot(df['amount_log'], bins=100, ax=ax3)
+        st.pyplot(fig3)
 
         # Time -> Hour of Day
         df['hour'] = (df['Time'] // 3600) % 24
         st.subheader("Fraud by Hour of Day")
-        sns.countplot(x='hour', data=df, hue='Class')
-        st.pyplot()
+        fig4, ax4 = plt.subplots()
+        sns.countplot(x='hour', data=df, hue='Class', ax=ax4)
+        st.pyplot(fig4)
 
         st.session_state['df'] = df
 
@@ -127,9 +131,9 @@ elif menu == "Model Training":
 
         st.subheader("Confusion Matrix")
         cm = confusion_matrix(y_test, y_pred)
-        sns.heatmap(cm, annot=True, fmt='d', cmap="Blues")
-        st.pyplot()
-
+        fig5, ax5 = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", ax=ax5)
+        st.pyplot(fig5)
         auc_score = roc_auc_score(y_test, y_prob)
         st.write(f"ROC AUC Score: {auc_score:.4f}")
 
@@ -137,16 +141,18 @@ elif menu == "Model Training":
         st.subheader("Precision-Recall Curve")
         precision, recall, _ = precision_recall_curve(y_test, y_prob)
         pr_auc = auc(recall, precision)
-        plt.plot(recall, precision, label=f"PR AUC={pr_auc:.2f}")
-        plt.xlabel("Recall")
-        plt.ylabel("Precision")
-        plt.legend()
-        st.pyplot()
+        fig6, ax6 = plt.subplots()
+        ax6.plot(recall, precision, label=f"PR AUC={pr_auc:.2f}")
+        ax6.set_xlabel("Recall")
+        ax6.set_ylabel("Precision")
+        ax6.legend()
+        st.pyplot(fig6)
 
         # Feature importance
         st.subheader("Feature Importance (XGBoost)")
-        xgb.plot_importance(model, max_num_features=10)
-        st.pyplot()
+        fig7, ax7 = plt.subplots()
+        xgb.plot_importance(model, max_num_features=10, ax=ax7)
+        st.pyplot(fig7)
 
 # ===============================
 # Predict Transaction
