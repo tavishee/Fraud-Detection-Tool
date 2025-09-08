@@ -13,19 +13,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, precision_recall_curve, auc
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-
 from imblearn.over_sampling import SMOTE
 import joblib
 
 # ===============================
-# Load dataset automatically
+# Load dataset automatically (Parquet)
 # ===============================
 @st.cache_data
 def load_data():
-    return pd.read_csv("creditcard.csv")   # keep file in same folder as app.py
+    # Make sure you have converted CSV -> Parquet once:
+    # df = pd.read_csv("creditcard.csv")
+    # df.to_parquet("creditcard.parquet", index=False)
+    return pd.read_parquet("creditcard.parquet")
 
 if 'df' not in st.session_state:
     st.session_state['df'] = load_data()
@@ -36,14 +36,14 @@ if 'df' not in st.session_state:
 st.sidebar.title("Fraud Detection App")
 st.sidebar.markdown("Demo project for Genpact (Credit Card Fraud Dataset)")
 
-menu = st.sidebar.radio("Navigation", ["Upload Data", "EDA", "Model Training", "Predict Transaction"])
+menu = st.sidebar.radio("Navigation", ["Dataset", "EDA", "Model Training", "Predict Transaction"])
 
 # ===============================
 # Dataset view
 # ===============================
-if menu == "Upload Data":
+if menu == "Dataset":
     st.title("Dataset (Auto Loaded)")
-    st.success("✅ Dataset loaded automatically!")
+    st.success("✅ Full dataset loaded automatically (Parquet format)!")
     st.write(st.session_state['df'].head())
 
 # ===============================
