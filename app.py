@@ -13,10 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, precision_recall_curve, auc
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-
 from imblearn.over_sampling import SMOTE
 import joblib
 
@@ -29,18 +26,31 @@ st.sidebar.markdown("Demo project for Genpact (Credit Card Fraud Dataset)")
 menu = st.sidebar.radio("Navigation", ["Upload Data", "EDA", "Model Training", "Predict Transaction"])
 
 # ===============================
-# Upload dataset
+# Upload dataset (from GitHub instead of frontend upload)
 # ===============================
 if menu == "Upload Data":
-    st.title("Upload Dataset")
-    uploaded_file = st.file_uploader("Upload creditcard.csv", type=["csv"])
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+    st.title("Load Dataset from GitHub")
+
+    # Raw GitHub URLs of your 6 dataset parts
+    urls = [
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part1.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part2.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part3.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part4.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part5.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part6.csv",
+    ]
+
+    try:
+        df_parts = [pd.read_csv(url) for url in urls]
+        df = pd.concat(df_parts, ignore_index=True)
+
         st.session_state['df'] = df
-        st.success("✅ Dataset uploaded successfully!")
+        st.success("✅ Dataset loaded successfully from GitHub!")
         st.write(df.head())
-    else:
-        st.info("Upload Kaggle's Credit Card Fraud dataset (creditcard.csv)")
+        st.write(f"Total rows: {len(df):,} (combined from {len(urls)} files)")
+    except Exception as e:
+        st.error(f"⚠️ Could not load dataset: {e}")
 
 # ===============================
 # EDA
@@ -48,31 +58,27 @@ if menu == "Upload Data":
 elif menu == "EDA":
     st.title("Exploratory Data Analysis")
     if 'df' not in st.session_state:
-        st.warning("Please upload dataset first!")
+        st.warning("Please load dataset first!")
     else:
         df = st.session_state['df']
 
-        # Class distribution
         st.subheader("Class Distribution")
         st.write(df['Class'].value_counts())
         fig1, ax1 = plt.subplots()
         sns.countplot(x='Class', data=df, ax=ax1)
         st.pyplot(fig1)
 
-        # Amount distribution
         st.subheader("Transaction Amount Distribution")
         fig2, ax2 = plt.subplots()
         sns.histplot(df['Amount'], bins=100, log_scale=(False, True), ax=ax2)
         st.pyplot(fig2)
 
-        # Log transform Amount
         df['amount_log'] = np.log1p(df['Amount'])
         st.subheader("Log-transformed Amount Distribution")
         fig3, ax3 = plt.subplots()
         sns.histplot(df['amount_log'], bins=100, ax=ax3)
         st.pyplot(fig3)
 
-        # Time -> Hour of Day
         df['hour'] = (df['Time'] // 3600) % 24
         st.subheader("Fraud by Hour of Day")
         fig4, ax4 = plt.subplots()
@@ -87,7 +93,7 @@ elif menu == "EDA":
 elif menu == "Model Training":
     st.title("Model Training & Evaluation")
     if 'df' not in st.session_state:
-        st.warning("Please upload dataset first!")
+        st.warning("Please load dataset first!")
     else:
         df = st.session_state['df']
 
@@ -108,21 +114,19 @@ elif menu == "Model Training":
             X_scaled, y, test_size=0.2, stratify=y, random_state=42
         )
 
-        # SMOTE
         smote = SMOTE(random_state=42)
         X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
 
-        # Train model
         st.info("Training XGBoost model...")
         model = xgb.XGBClassifier(eval_metric="logloss", use_label_encoder=False)
         model.fit(X_train_res, y_train_res)
 
-        # Save model & scaler
+        # Save model, scaler, and features list
         joblib.dump(model, "fraud_model.pkl")
         joblib.dump(scaler, "scaler.pkl")
-        st.success("✅ Model trained and saved!")
+        joblib.dump(features, "features.pkl")
+        st.success("✅ Model, scaler, and features saved!")
 
-        # Evaluation
         y_pred = model.predict(X_test)
         y_prob = model.predict_proba(X_test)[:,1]
 
@@ -137,7 +141,6 @@ elif menu == "Model Training":
         auc_score = roc_auc_score(y_test, y_prob)
         st.write(f"ROC AUC Score: {auc_score:.4f}")
 
-        # Precision-Recall Curve
         st.subheader("Precision-Recall Curve")
         precision, recall, _ = precision_recall_curve(y_test, y_prob)
         pr_auc = auc(recall, precision)
@@ -148,7 +151,6 @@ elif menu == "Model Training":
         ax6.legend()
         st.pyplot(fig6)
 
-        # Feature importance
         st.subheader("Feature Importance (XGBoost)")
         fig7, ax7 = plt.subplots()
         xgb.plot_importance(model, max_num_features=10, ax=ax7)
@@ -163,6 +165,7 @@ elif menu == "Predict Transaction":
     try:
         model = joblib.load("fraud_model.pkl")
         scaler = joblib.load("scaler.pkl")
+        features = joblib.load("features.pkl")   # <-- load saved features list
     except:
         st.error("⚠️ Train the model first under 'Model Training' tab.")
         st.stop()
@@ -172,18 +175,20 @@ elif menu == "Predict Transaction":
     amount = st.number_input("Transaction Amount", min_value=0.0, step=1.0)
     time_sec = st.number_input("Time since first txn (seconds)", min_value=0, step=1000)
 
-    # Derived features
     amount_log = np.log1p(amount)
     hour = (time_sec // 3600) % 24
     hour_sin = np.sin(2 * np.pi * hour/24)
     hour_cos = np.cos(2 * np.pi * hour/24)
 
-    # Fill in random V1...V28 (demo only)
+    # Sliders for V1...V28
     v_features = [st.slider(f"V{i}", -5.0, 5.0, 0.0, 0.1) for i in range(1,29)]
 
     if st.button("Predict"):
-        input_data = pd.DataFrame([[amount_log, hour_sin, hour_cos] + v_features],
-                                  columns=['amount_log','hour_sin','hour_cos'] + [f'V{i}' for i in range(1,29)])
+        # Build input data using the same features list
+        input_data = pd.DataFrame(
+            [[amount_log, hour_sin, hour_cos] + v_features],
+            columns=features
+        )
         input_scaled = scaler.transform(input_data)
         prob = model.predict_proba(input_scaled)[0][1]
 
