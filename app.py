@@ -21,7 +21,7 @@ import joblib
 # Sidebar
 # ===============================
 st.sidebar.title("Fraud Detection App")
-st.sidebar.markdown("Demo project for Genpact (Credit Card Fraud Dataset)")
+st.sidebar.markdown("Demo project (Credit Card Fraud Dataset)")
 
 menu = st.sidebar.radio("Navigation", ["Upload Data", "EDA", "Model Training", "Predict Transaction"])
 
