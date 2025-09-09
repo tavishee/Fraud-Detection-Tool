@@ -36,12 +36,12 @@ if menu == "Upload Data":
 
     # Add the raw GitHub URLs of your 6 dataset parts here
     urls = [
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part1.csv",
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part2.csv",
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part3.csv",
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part4.csv",
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part5.csv",
-        "https://raw.githubusercontent.com/tavishee/<repo>/main/your_dataset_part6.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part1.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part2.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part3.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part4.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part5.csv",
+        "https://raw.githubusercontent.com/tavishee/Fraud-Detection-Tool/main/your_dataset_part6.csv",
     ]
 
     try:
