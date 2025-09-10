@@ -130,14 +130,20 @@ elif menu == "Model Training":
         y_pred = model.predict(X_test)
         y_prob = model.predict_proba(X_test)[:,1]
 
-        st.subheader("Classification Report")
-        st.text(classification_report(y_test, y_pred, digits=4))
+        # -------------------------
+        # Clean Classification Report
+        # -------------------------
+        st.subheader("Classification Report (Clean Table)")
+        report = classification_report(y_test, y_pred, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
+        st.dataframe(report_df.style.format(precision=4))
 
         st.subheader("Confusion Matrix")
         cm = confusion_matrix(y_test, y_pred)
         fig5, ax5 = plt.subplots()
         sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", ax=ax5)
         st.pyplot(fig5)
+
         auc_score = roc_auc_score(y_test, y_prob)
         st.write(f"ROC AUC Score: {auc_score:.4f}")
 
